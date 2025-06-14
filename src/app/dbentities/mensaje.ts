@@ -1,23 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity()
 export class Mensaje {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id: number;
 
-  @Column({ length: 100 })
-  nombre!: string;
+  @Column({ type: "varchar", length: 100 })
+  nombre: string;
 
-  @Column({ length: 20 })
-  telefono!: string;
+  @Column({ type: "varchar", length: 20 })
+  telefono: string;
 
-  @Column("text")
-  mensaje!: string;
+  @Column({ type: "text" })
+  mensaje: string;
 
-  @Column({ 
-    type: "timestamp", 
+  @Column({
+    type: "timestamp",
     default: () => "CURRENT_TIMESTAMP",
-    name: "hora_mensaje"
+    name: "hora_mensaje",
+    index: true,
   })
-  horaMensaje!: Date;
+  horaMensaje: Date;
 }

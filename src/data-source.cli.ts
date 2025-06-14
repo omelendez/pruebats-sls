@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Mensaje } from "./app/dbentities/mensaje.js";
+import { Mensaje } from "@/app/dbentities/mensaje"; // Alias correcto según tsconfig.json
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -9,10 +9,10 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "mensajes_db",
-  entities: [Mensaje],
-  synchronize: false,//false en produccion
+  synchronize: false,
   logging: false,
-  charset: 'utf8mb4',
+  charset: "utf8mb4",
   migrations: ["src/app/migrations/*.ts"],
   migrationsTableName: "typeorm_migrations",
+  entities: [Mensaje],
 });

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2020",    
-    "module": "es2020",
+    "target": "es2020",
+    "module": "esnext",
     "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
@@ -16,7 +16,6 @@
     "useUnknownInCatchVariables": true,
     "types": ["node", "jest"],
     "sourceMap": true,
-    //typeorm
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false
