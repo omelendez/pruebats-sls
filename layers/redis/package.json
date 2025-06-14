@@ -1,0 +1,14 @@
+{
+  "name": "redis-layer",
+  "version": "1.0.0",
+  "description": "Capa Lambda con cliente Redis",
+  "type": "commonjs",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.1",
+  "dependencies": {
+    "ioredis": "^5.6.1",
+    "redis": "^5.5.6"
+  }
+}
