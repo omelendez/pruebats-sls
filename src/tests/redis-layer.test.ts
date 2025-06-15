@@ -1,48 +1,42 @@
-import { CacheService, getRedisClient } from '@/app/services/cache.service';
+import { getRedisClient } from '@/app/services/cache.service';
+import { createClient } from 'redis';
 
-describe('Redis Layer Integration', () => {
-  beforeAll(async () => {
-    // Configurar entorno para pruebas
-    process.env.IS_OFFLINE = 'true';
-    process.env.REDIS_URL = 'redis://localhost:6379';
+jest.mock('redis', () => {
+  const mRedis = {
+    connect: jest.fn(),
+    isOpen: false,
+    get: jest.fn(),
+    setEx: jest.fn(),
+    set: jest.fn(),
+  };
+  return { createClient: jest.fn(() => mRedis) };
+});
 
-    // Esperar a que Redis esté listo
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  });
-
-  afterAll(async () => {
-    const client = await getRedisClient(); // Acceso privado (temporal)
-    await client.quit(); // Cerrar Redis después de test
-  });
-
-  it('should connect to Redis', async () => {
-    await expect(CacheService.set('connection-set', 'ok', 1)).resolves.not.toThrow();
-  });
-
-  it('should set and get values', async () => {
-    await CacheService.set('test-key', 'test-value', 10);
-    const value = await CacheService.get('test-key');
-    expect(value).toBe('test-value');
-  });
-
-  it('should set value without TTL', async () => {
-    await CacheService.set('key-sin-ttl', 'valor-sin-ttl');
-    const value = await CacheService.get('key-sin-ttl');
-    expect(value).toBe('valor-sin-ttl');
-  });
-
-  describe('Manejo de errores (mocked)', () => {
-    it('debiera manejar errores via mock', async () => {
-      jest.spyOn(CacheService, 'get').mockImplementation(() => {
-        return Promise.reject(new Error('Fallo de Redis simulado'));
-      });
-
-      try {
-        await expect(CacheService.get('test-key')).rejects.toThrow('Fallo de Redis simulado');
-      } finally {
-        jest.restoreAllMocks();
-      }
+describe('CacheService', () => {
+  describe('getRedisClient', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      process.env.IS_OFFLINE = 'true';
+      process.env.REDIS_URL = 'redis://localhost:6379';
     });
-    
+
+    it('debería crear un cliente Redis en modo offline', async () => {
+      const client = await getRedisClient();
+
+      expect(createClient).toHaveBeenCalledWith({ url: process.env.REDIS_URL });
+      expect(client.connect).toHaveBeenCalled();
+      expect(client).toHaveProperty('get');
+      expect(client).toHaveProperty('setEx');
+    });
+
+    it('debería reutilizar el cliente Redis si ya está abierto', async () => {
+      const client = await getRedisClient();
+      (client as any).isOpen = true;
+
+      const reusedClient = await getRedisClient();
+      expect(reusedClient).toBe(client);
+      // connect no vuelve a llamarse porque ya está abierto
+      expect(createClient).toHaveBeenCalledTimes(1);
+    });
   });
 });

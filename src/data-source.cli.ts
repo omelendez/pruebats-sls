@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
   logging: true,
   logger: "advanced-console",
   charset: "utf8mb4",
-  migrations: ["src/app/migrations/*.ts"],
+  migrations: [process.env.IS_EXPRESS === 'true' ? 'src/app/migrations/*.ts' : 'dist/app/migrations/*.js'],
   migrationsTableName: "typeorm_migrations",
   entities: [Mensaje, PlanetaVuelo],
 });

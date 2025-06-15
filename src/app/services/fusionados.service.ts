@@ -1,9 +1,9 @@
-import { getDataSource, closeDataSource } from "../utils/ds-singleton";
+import { getDataSource, closeDataSource } from "@/app/utils/ds-singleton";
 import { CacheService } from "./cache.service";
 import { mapeoTerreno } from "@/app/utils/mapeoTerreno";
 import { getVueloPorAeropuerto } from "@/app/services/aviationstack.service";
 import { obtenerPlanetas } from "@/app/services/swapi.service";
-import { PlanetaVuelo } from "../dbentities/planetavuelo";
+import { PlanetaVuelo } from "@/app/dbentities/planetavuelo";
 
 const CACHE_KEY = "fusion:planetas-vuelos";
 const CACHE_TTL = 1800; // 30 minutos
@@ -18,23 +18,24 @@ export async function getFusionados() {
         console.log('❌ Se perdió cache. Generando datos...');
         const planetas = await obtenerPlanetas();
     
-        const planetasConVuelos  = await Promise.all(
+        const planetasConVuelos  = await Promise.allSettled(
           planetas.map(async (planet) => {
             const airportCode = mapeoTerreno[planet.terrain.split(', ')[0]] || 'JFK'; // Fallback
             const flights = await getVueloPorAeropuerto(airportCode);
-            return {
-              ...planet,
-              vuelos: flights,
-            };
+            return {...planet, vuelos: flights };
           })
         );
+
+        const resultadosOk = planetasConVuelos
+          .filter(r => r.status === 'fulfilled')
+          .map(r => (r as PromiseFulfilledResult<any>).value);
 
         // Guarda en DB
         const dataSource = await getDataSource();
         const repo = dataSource.getRepository(PlanetaVuelo);
 
         await repo.clear(); // Opcional: limpia tabla antes de insertar
-        await repo.save(planetasConVuelos);
+        await repo.save(resultadosOk);
 
         // Cachea el resultado
         await CacheService.set(CACHE_KEY, JSON.stringify(planetasConVuelos), CACHE_TTL);

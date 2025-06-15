@@ -8,7 +8,7 @@ export async function obtenerPlanetas(): Promise<Planet[]> {
     if (!response.ok) throw new Error(`SWAPI error: ${response.status}`);
     
     const data = await response.json();
-    const limPlanets = data.slice(0, 5).map((planet: any) => ({
+    const limPlanets = data.slice(0, 1).map((planet: any) => ({
         name: planet.name,
         terrain: planet.terrain,
         climate: planet.climate,

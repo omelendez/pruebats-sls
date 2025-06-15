@@ -3,25 +3,39 @@ import { platform } from 'os';
 
 const serverlessConfiguration: AWS = {
   service: 'mi-servicio-redis',
-  configValidationMode: 'error', // Más estricto en v4
-  frameworkVersion: '4', // Especificamos v4 explícitamente
+  configValidationMode: 'error',
+  frameworkVersion: '4',
 
   provider: {
     name: 'aws',
     runtime: 'nodejs20.x',
-    architecture: 'arm64', // Nuevo en v4 - mejor precio/rendimiento
-    profile: 'mi-perfil-serverless', // De tu configuración AWS CLI
+    architecture: 'arm64',
+    profile: 'mi-perfil-serverless', // AWS CLI
     region: 'us-east-1',
-    stage: 'dev',
+    stage: 'prd',
     environment: {
       REDIS_URL: '${env:REDIS_URL}',
       NODE_OPTIONS: '--enable-source-maps',
+      AVIATIONSTACK_API_KEY: '${env:AVIATIONSTACK_API_KEY}',
+      IS_OFFLINE: '${env:IS_OFFLINE}',
+      IS_EXPRESS: '${env:IS_EXPRESS}',
+      JWT_SECRET: '${env:JWT_SECRET}',
+      DB_HOST: '${env:DB_HOST}',
+      DB_PORT: '${env:DB_PORT}',
+      DB_USER: '${env:DB_USER}',
+      DB_PASSWORD: '${env:DB_PASSWORD}',
+      DB_NAME: '${env:DB_NAME}',
     },
-    logRetentionInDays: 14, // Nuevo en v4 - configuración directa
+    logRetentionInDays: 14,
+    tracing: {
+      lambda: true,
+    },
+    timeout: 30,
   },
 
   functions: {
     fusionados: {
+      //layers: ['${layer:redis}'], // Reemplaza con tu ARN real
       handler: 'src/handlers/fusionados.handler',
       events: [
         {
@@ -32,9 +46,6 @@ const serverlessConfiguration: AWS = {
           },
         },
       ],
-      environment: {
-        AVIATIONSTACK_API_KEY: '${env:AVIATIONSTACK_API_KEY}',
-      },
     },
     almacenar: {
       handler: 'src/handlers/almacenar.handler',
@@ -68,14 +79,6 @@ const serverlessConfiguration: AWS = {
             path: 'docs.json',
             method: 'get',
             cors:true
-            // cors: {
-            //   origin: '*',
-            //   headers: [
-            //     'Content-Type',
-            //     'Authorization'
-            //   ],
-            //   allowCredentials: true
-            // },
           },
         }
       ],
@@ -100,10 +103,10 @@ const serverlessConfiguration: AWS = {
       name: 'redis-layer',
       description: 'Capa con cliente Redis y dependencias',
       compatibleRuntimes: ['nodejs20.x'],
-      compatibleArchitectures: ['arm64'], // Nuevo en v4
+      compatibleArchitectures: ['arm64'],
       package: {
         patterns: [
-          '!node_modules/.pnpm/**', // Excluir archivos innecesarios
+          '!node_modules/.pnpm/**',
         ],
       },
     },
@@ -111,20 +114,10 @@ const serverlessConfiguration: AWS = {
 
   plugins: [
     'serverless-offline',
-    'serverless-plugin-layer-manager', // Mejor manejo de capas
+    'serverless-plugin-layer-manager',
   ],
 
   custom: {
-    esbuild: {
-      bundle: true,
-      minify: false,
-      sourcemap: true,
-      platform: 'node',
-      target: 'es2020',
-      format: 'esm',
-      external: ['/opt/nodejs/*'], // Excluir dependencias de layers
-    },
-    redisLayerArn: { 'Fn::GetAtt': ['RedisLambdaLayer', 'Arn'] },
     'serverless-offline': {
       noPrependStageInUrl: true,
     },
@@ -133,9 +126,14 @@ const serverlessConfiguration: AWS = {
   package: {
     individually: true,
     patterns: [
-      '!node_modules/**',
-      '!tests/**',
-      '!.git/**',
+    '!node_modules/**',
+    '!tests/**',
+    '!.git/**',
+    '!layers/**',
+    'dist/**',
+    'layers/redis/nodejs/**',
+    '!.env',
+    '.env.prd',
     ],
   },
 };

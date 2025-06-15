@@ -1,5 +1,5 @@
 import type { RedisClientType } from 'redis';
-const resolveLayerImport = async (path: string): Promise<{ getClient: () => Promise<RedisClientType> }> => {
+export const resolveLayerImport = async (path: string): Promise<{ getClient: () => Promise<RedisClientType> }> => {
   const imported = await import(path);
   return imported.getClient ? imported : imported.default;
 };
@@ -10,13 +10,18 @@ const getRedisClient = async (): Promise<RedisClientType> => {
   if (client?.isOpen) return client;
 
   const isOffline = process.env.IS_OFFLINE === 'true';
-  const clientPath = isOffline
-    ? '../../../layers/redis/nodejs/redis-client.js' // dev
-    : '/opt/nodejs/redis-client.js'; // prd
-
+  
   try {
-    const redisLayer = await resolveLayerImport(clientPath);
-    client = await redisLayer.getClient();
+    if (isOffline) {
+      const { createClient } = await import('redis');
+      client = createClient({ url: process.env.REDIS_URL });
+      await client.connect();
+      console.log('✅ Cliente Redis conectado (offline/local)');
+    } else {
+      const redisLayer = await resolveLayerImport('/opt/nodejs/redis-client.js');
+      client = await redisLayer.getClient();
+    }
+
     return client;
   } catch (error: unknown) {
     if (error instanceof Error) {

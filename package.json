@@ -21,7 +21,7 @@
     "test:redis": "cross-env NODE_OPTIONS=--experimental-vm-modules jest src/tests/redis-layer.test.ts",
     "debug:test": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
     "dev": "NODE_OPTIONS='--require=dotenv/config' tsx src/server/local.ts",
-    "offline": "cross-env NODE_OPTIONS=--require=dotenv/config sls offline start",
+    "offline": "AWS_PROFILE=st-exam sls offline start",
     "debug": "NODE_OPTIONS=--'require=dotenv/config' tsx watch dist/server/local.js"
   },
   "keywords": [],

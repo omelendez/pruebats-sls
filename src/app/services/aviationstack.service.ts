@@ -11,8 +11,11 @@ export async function getVueloPorAeropuerto(iataCode: string): Promise<Flight[]>
   url.searchParams.append('arr_iata', iataCode);
   url.searchParams.append('limit', '10');
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
   try {
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), { signal: controller.signal });
     if (!response.ok) throw new Error(`AviationStack error: ${response.status}`);
     
     const data = await response.json();
@@ -34,7 +37,9 @@ export async function getVueloPorAeropuerto(iataCode: string): Promise<Flight[]>
         actual_runway: flight.arrival.actual_runway
     }));
   } catch (error) {
-    console.error('Error obteniendo vuelos:', error);
-    throw error;
+    console.error(`Error obteniendo vuelos para ${iataCode}:`, error);
+    return []; // Devuelve vacío en caso de fallo para no romper Promise.all
+  } finally {
+    clearTimeout(timeout);
   }
 }
