@@ -2,7 +2,7 @@ import type { AWS } from '@serverless/typescript';
 import { platform } from 'os';
 
 const serverlessConfiguration: AWS = {
-  service: 'mi-servicio-redis',
+  service: 'mi-prueba-softtek',
   configValidationMode: 'error',
   frameworkVersion: '4',
 
@@ -10,7 +10,7 @@ const serverlessConfiguration: AWS = {
     name: 'aws',
     runtime: 'nodejs20.x',
     architecture: 'arm64',
-    profile: 'mi-perfil-serverless', // AWS CLI
+    profile: 'st-exam', // AWS CLI
     region: 'us-east-1',
     stage: 'prd',
     environment: {
@@ -30,19 +30,35 @@ const serverlessConfiguration: AWS = {
     tracing: {
       lambda: true,
     },
+    apiGateway: {
+      apiKeys: [],
+    },
     timeout: 30,
+    iamRoleStatements: [
+      {
+        Effect: 'Allow',
+        Action: ['logs:*'],
+        Resource: '*'
+      }
+    ],
   },
 
   functions: {
     fusionados: {
-      //layers: ['${layer:redis}'], // Reemplaza con tu ARN real
+      layers: [{ Ref: 'RedisLambdaLayer'}], // Referencia la capa donde reside el redis-cli
       handler: 'src/handlers/fusionados.handler',
       events: [
         {
           http: {
             path: 'fusionados',
             method: 'GET',
-            cors: true,
+            cors: {
+              origin: '*', // cualquier origen
+              headers: ['Content-Type'],
+              allowCredentials: false
+            },
+            authorizer: undefined,
+            private: false
           },
         },
       ],
@@ -54,7 +70,13 @@ const serverlessConfiguration: AWS = {
           http: {
             path: 'almacenar',
             method: 'post',
-            cors: true
+            cors: {
+              origin: '*', // cualquier origen
+              headers: ['Content-Type'],
+              allowCredentials: false
+            },
+            authorizer: undefined,
+            private: false
           }
         }
       ]
@@ -66,7 +88,13 @@ const serverlessConfiguration: AWS = {
           http: {
             path: 'historial',
             method: 'get',
-            cors: true
+            cors: {
+              origin: '*', // cualquier origen
+              headers: ['Content-Type'],
+              allowCredentials: false
+            },
+            authorizer: undefined,
+            private: false
           }
         }
       ]
@@ -78,7 +106,13 @@ const serverlessConfiguration: AWS = {
           http: {
             path: 'docs.json',
             method: 'get',
-            cors:true
+            cors: {
+              origin: '*', // cualquier origen
+              headers: ['Content-Type'],
+              allowCredentials: false
+            },
+            authorizer: undefined,
+            private: false
           },
         }
       ],
@@ -90,7 +124,13 @@ const serverlessConfiguration: AWS = {
           http: {
             path: 'docs/{proxy+}',
             method: 'get',
-            cors: true
+            cors: {
+              origin: '*', // cualquier origen
+              headers: ['Content-Type'],
+              allowCredentials: false
+            },
+            authorizer: undefined,
+            private: false
           }
         }
       ]
@@ -114,7 +154,6 @@ const serverlessConfiguration: AWS = {
 
   plugins: [
     'serverless-offline',
-    'serverless-plugin-layer-manager',
   ],
 
   custom: {
