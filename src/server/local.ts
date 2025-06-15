@@ -2,7 +2,7 @@ import "reflect-metadata";
 import express from 'express';
 import { setupRoutes } from '@/server/routes';
 import { initSwagger } from '@/server/swagger';
-import { AppDataSource } from "../data-source.cli.js";
+import { AppDataSource } from "@/data-source.cli";
 
 const app = express();
 app.use(express.json());

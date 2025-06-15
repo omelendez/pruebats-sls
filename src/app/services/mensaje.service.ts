@@ -1,29 +1,29 @@
-import { AppDataSource } from "../../data-source.cli.js";
+import { getDataSource, closeDataSource } from "@/app/utils/ds-singleton";
 import { Mensaje } from "@/app/dbentities/mensaje";
-import { MensajeOutput } from "../models/mensaje.model";
+import { MensajeOutput } from "@/app/models/mensaje.model";
 
 export async function setMensaje(pnombre: string, ptelefono: string, pmensaje: string): Promise<void> {
 
   try {
-    await AppDataSource.initialize();
     
+    const ds = await getDataSource();
     const nuevoMensaje = new Mensaje();
     nuevoMensaje.nombre = pnombre;
     nuevoMensaje.telefono = ptelefono;
     nuevoMensaje.mensaje = pmensaje;
 
-    await AppDataSource.manager.save(nuevoMensaje);
+    await ds.manager.save(nuevoMensaje);
   } catch (error: any) {
     throw new Error("Error al almacenar mensaje: " + error.message);
   } finally {
-    await AppDataSource.destroy();
+    await closeDataSource();
   }
 };
 
 export async function getMensajes(): Promise<MensajeOutput[]> {
   try {
-    await AppDataSource.initialize();
-    const mensajes = await AppDataSource.manager.find(Mensaje, {
+    const ds = await getDataSource();
+    const mensajes = await ds.manager.find(Mensaje, {
       order: { horaMensaje: "DESC" }
     });
 
@@ -42,6 +42,6 @@ export async function getMensajes(): Promise<MensajeOutput[]> {
   } catch (error:  any) {
     throw new Error("Error al obtener mensajes: " + error.message);
   } finally {
-    await AppDataSource.destroy();
+    await closeDataSource();
   }
 }

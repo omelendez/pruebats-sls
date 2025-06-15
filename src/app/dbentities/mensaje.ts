@@ -13,12 +13,11 @@ export class Mensaje {
 
   @Column({ type: "text" })
   mensaje: string;
-
+  
   @Column({
     type: "timestamp",
     default: () => "CURRENT_TIMESTAMP",
-    name: "hora_mensaje",
-    index: true,
+    name: "hora_mensaje"
   })
   horaMensaje: Date;
 }

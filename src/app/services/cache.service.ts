@@ -11,7 +11,7 @@ const getRedisClient = async (): Promise<RedisClientType> => {
 
   const isOffline = process.env.IS_OFFLINE === 'true';
   const clientPath = isOffline
-    ? '../../layers/redis/nodejs/redis-client.js' // dev
+    ? '../../../layers/redis/nodejs/redis-client.js' // dev
     : '/opt/nodejs/redis-client.js'; // prd
 
   try {

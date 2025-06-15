@@ -42,24 +42,33 @@ export const setupRoutes = (app: Express) => {
       res.status(500).json({ error: 'Error en /fusionados:'+error.message });
     }
   });
-  /**
-   * @openapi
-   * /almacenar:
-   *   post:
-   *     tags: [Mensajes]
-   *     summary: Almacena un nuevo mensaje
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             $ref: '#/components/schemas/NuevoMensaje'
-   *     responses:
-   *       201:
-   *         description: Mensaje almacenado correctamente
-   *       500:
-   *         description: Error del servidor
-   */
+/**
+ * @openapi
+ * /almacenar:
+ *   post:
+ *     tags: [Mensajes]
+ *     summary: Almacena un mensaje
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               telefono:
+ *                 type: string
+ *               mensaje:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Mensaje almacenado con éxito
+ *       400:
+ *         description: Datos requeridos
+ *       500:
+ *         description: Error al almacenar mensaje
+ */
   app.post('/almacenar', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { nombre, telefono, mensaje } = req.body;
     if (!nombre || !telefono || !mensaje) {
@@ -76,22 +85,36 @@ export const setupRoutes = (app: Express) => {
     next();
   });
 
-  /**
-   * @openapi
-   * /historial:
-   *   get:
-   *     tags: [Mensajes]
-   *     summary: Obtiene el historial de mensajes
-   *     responses:
-   *       200:
-   *         description: Lista de mensajes
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/Mensaje'
-   */
+/**
+ * @openapi
+ * /historial:
+ *   get:
+ *     tags: [Mensajes]
+ *     summary: Obtiene el historial de mensajes almacenados
+ *     responses:
+ *       200:
+ *         description: Lista de mensajes almacenados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   nombre:
+ *                     type: string
+ *                   telefono:
+ *                     type: string
+ *                   mensaje:
+ *                     type: string
+ *                   fecha:
+ *                     type: string
+ *                     format: date-time
+ *       500:
+ *         description: Error al obtener historial
+ */
   app.get('/historial', async (req: Request, res: Response) => {
     try {
       const mensajes = await getMensajes();
